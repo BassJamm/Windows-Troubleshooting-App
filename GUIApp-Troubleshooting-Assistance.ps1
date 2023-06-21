@@ -118,8 +118,8 @@ function GetSystemEvents {
     # $sysEventsTable.Rows.Clear()
 }
 
-$var_btnGetSysinfo.Add_Click({CollectsystemInformation})    # This adds the function to the click of the button btnhellow.
-$var_btnExportInfo.Add_Click({ExportsystemInformation})     # Exports data collected to C:\Temp.
-$var_btnGetSysEvntLogs.Add_Click({GetSystemEvents})         # Gets the last 2hrs worth of system Events.
+$var_btnGetSysinfo.Add_Click({CollectsystemInformation})                        # This adds the function to the click of the button btnhellow.
+$var_btnExportInfo.Add_Click({ExportsystemInformation})                         # Exports data collected to C:\Temp to the click of the button btnExportInfo.
+$var_btnGetSysEvntLogs.Add_Click({GetSystemEvents})                             # Gets the last 2hrs worth of system Events to the click of the button btnGetSysEvntLogs.
 
-$psform.ShowDialog()                                        # Create window, put all forms, buttons etc before this line.
+$psform.ShowDialog()                                                            # Create window, put all forms, buttons etc before this line.
