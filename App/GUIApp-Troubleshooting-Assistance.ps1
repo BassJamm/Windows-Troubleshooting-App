@@ -31,8 +31,9 @@ $xaml.SelectNodes("//*[@Name]") | ForEach-Object {
 
 # Logic
 
-$var_txtStatus.Text = "Click Collect to begin."                                     # Set status text box text on tab 1.
-$var_txtEventDisclaimer.Text = "Allow up to a minute to run, the app will freeze."  # Set disclaimer text to warn of freezing on tab 2.
+$var_txtStatus.Text = "Click Collect to begin."                                                         # Set status text box text on tab 1.
+$var_txtEventDisclaimer.Text = "Allow up to a minute to run, the app will freeze."                      # Set disclaimer text to warn of freezing on tab 2.
+$var_txtNetworkStatus.Text = "Allow up to a minute for these to run, the app will freeze temporarily."  # Set disclaimer to warn of freezing.
 
 # System info tab functions.
 function CollectsystemInformation {
@@ -183,6 +184,8 @@ function NetworkPingtest {
 }
 
 function NetworkDNSLookup {
+
+    $var_txtNetworkStatus.Text = "Running DNS lookup test."
     
     $networkLookupColumns = @(
         'Name'
@@ -191,7 +194,6 @@ function NetworkDNSLookup {
         'Section'
         'NameHost'
     )
-
     $LookuptestResult = Resolve-DnsName -Name $var_txtNsLookup.Text
     $lookupEventsTable = New-Object System.Data.DataTable
     [void]$lookupEventsTable.Columns.AddRange($networkLookupColumns)
@@ -208,12 +210,32 @@ function NetworkDNSLookup {
 }
 
 function NetworkIPConfig {
-    $netIPConfig = Get-NetIPConfiguration -All | Select-Object -ExpandProperty NetAdapter | Select-Object name,interfacedescription,status,macaddress,linkspeed
-    $netIPAddresses = Get-NetIPAddress | Select-Object InterfaceAlias, IPAddress| Sort-Object interfacealias
+    
+    $var_txtNetworkStatus.Text = "Running IP Config test."
+    # Get the NetIPConfig for the device.
+    $netIPConfig = Get-NetIPConfiguration -All | Select-Object -ExpandProperty NetAdapter | Select-Object name,interfacedescription,status,macaddress,linkspeed,@{l='AssociatedIPv4Address';e={ (get-netipaddress -InterfaceAlias $_.name -AddressFamily IPv4).IPAddress -join ',' }},@{l='AssociatedIPv6Address';e={ (get-netipaddress -InterfaceAlias $_.name -AddressFamily IPv6).IPAddress -join ',' }}
 
-    $netIPConfig | Select-Object *, @{ l='itemName';e={$netIPAddresses | Where-Object  InterfaceAlias -Match $_.Name | Select-Object -ExpandProperty IPAddress}} -ExcludeProperty InterfaceAlias
+    $networkIPColumns = @(
+        'name'
+        'interfacedescription'
+        'Status'
+        'MacAddress'
+        'LinkSpeed'
+        'AssociatedIPv4Address'
+        'AssociatedIPv6Address'
+    )
 
+    $netIPConfigTable = New-Object System.Data.DataTable
+    [void]$netIPConfigTable.Columns.AddRange($networkIPColumns)
 
+    foreach($Event in $netIPConfig){
+        $ipEntry = @()
+        foreach ($column in $networkIPColumns){
+            $ipEntry += $Event.$column
+        }
+        [void]$netIPConfigTable.Rows.Add($ipEntry)
+    }
+    $var_dtgNetwork.ItemsSource = $netIPConfigTable.DefaultView
 
 }
 
@@ -225,6 +247,7 @@ $var_btnExportSysEvntLogs.Add_Click({ExportSystemEvents})   # Gets the system ev
 $var_btnExportAppEvntLogs.Add_Click({ExportAppEvents})      # Gets the app events and exports to C:\Temp to the click of th button btnExportAppEvntLogs.
 $var_btnGetPing.Add_Click({NetworkPingtest})                # Intiates the ping function and prints to the output Grid Object.
 $var_btnGetNsLookup.Add_Click({NetworkDNSLookup})           # Initiates the resolve dns function and prints to the output Grid Object.
+$var_btnGetIPConfig.Add_Click({NetworkIPConfig})            # Initiates the IP config function and outputs to the grid object.
 
 
 $psform.ShowDialog()                                        # Create window, put all forms, buttons etc before this line.
