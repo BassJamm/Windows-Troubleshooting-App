@@ -1,5 +1,4 @@
 # Windows-Troubleshooting-App
 
 PowerShell\XAML app to help troubleshoot a Windows device.
-
-Currently still building this at the moment.
+This is stalled at the moment, I am adding to it as and when I learn things.
